@@ -1,20 +1,18 @@
-package com.example.madlevel5example
+package com.example.madlevel5example.ui
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.setFragmentResultListener
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.madlevel5example.databinding.FragmentRemindersBinding
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.example.madlevel5example.model.Reminder
+import com.example.madlevel5example.viewmodel.ReminderViewModel
 
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
@@ -24,10 +22,12 @@ class RemindersFragment : Fragment() {
     private var _binding: FragmentRemindersBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var remindersRepository: ReminderRepository
+    //private lateinit var remindersRepository: ReminderRepository
 
     private val reminders = arrayListOf<Reminder>()
     private val reminderAdapter = ReminderAdapter(reminders)
+
+    private val viewModel: ReminderViewModel by viewModels()
 
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?,
@@ -43,8 +43,8 @@ class RemindersFragment : Fragment() {
         initViews()
         observeAddReminderResult()
 
-        remindersRepository = ReminderRepository(requireContext())
-        getRemindersFromDatabase()
+        //remindersRepository = ReminderRepository(requireContext())
+        //getRemindersFromDatabase()
     }
 
     override fun onDestroyView() {
@@ -60,7 +60,7 @@ class RemindersFragment : Fragment() {
         createItemTouchHelper().attachToRecyclerView(binding.rvReminders)
     }
 
-    private fun getRemindersFromDatabase() {
+    /*private fun getRemindersFromDatabase() {
         CoroutineScope(Dispatchers.Main).launch {
             val reminders = withContext(Dispatchers.IO) {
                 remindersRepository.getAllReminders()
@@ -69,9 +69,9 @@ class RemindersFragment : Fragment() {
             this@RemindersFragment.reminders.addAll(reminders)
             reminderAdapter.notifyDataSetChanged()
         }
-    }
+    }*/
 
-    private fun observeAddReminderResult() {
+    /*private fun observeAddReminderResult() {
         setFragmentResultListener(REQ_REMINDER_KEY) { _, bundle ->
             bundle.getString(BUNDLE_REMINDER_KEY)?.let {
                 val reminder = Reminder(it)
@@ -88,6 +88,14 @@ class RemindersFragment : Fragment() {
             }       // Throws an error log when there's no text.
                     ?: Log.e("RemindersFragment", "Request triggered, but empty reminder text!")
         }
+    }*/
+
+    private fun observeAddReminderResult() {
+        viewModel.reminders.observe(viewLifecycleOwner, Observer { reminders ->
+            this@RemindersFragment.reminders.clear()
+            this@RemindersFragment.reminders.addAll(reminders)
+            reminderAdapter.notifyDataSetChanged()
+        })
     }
 
     /**
@@ -112,16 +120,16 @@ class RemindersFragment : Fragment() {
             // Callback triggered when a user swiped an item.
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.adapterPosition
-                //reminders.removeAt(position)
-                //reminderAdapter.notifyDataSetChanged()
                 val reminderToDelete = reminders[position]
 
-                CoroutineScope(Dispatchers.Main).launch {
+                /*CoroutineScope(Dispatchers.Main).launch {
                     withContext(Dispatchers.IO) {
                         remindersRepository.deleteReminder(reminderToDelete)
                     }
                     getRemindersFromDatabase()
-                }
+                }*/
+
+                viewModel.deleteReminder(reminderToDelete)
             }
         }
 

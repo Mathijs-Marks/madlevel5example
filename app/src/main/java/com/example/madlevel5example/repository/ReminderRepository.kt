@@ -1,6 +1,10 @@
-package com.example.madlevel5example
+package com.example.madlevel5example.repository
 
 import android.content.Context
+import androidx.lifecycle.LiveData
+import com.example.madlevel5example.model.Reminder
+import com.example.madlevel5example.database.ReminderRoomDatabase
+import com.example.madlevel5example.dao.ReminderDao
 
 class ReminderRepository(context: Context) {
 
@@ -11,7 +15,7 @@ class ReminderRepository(context: Context) {
         reminderDao = reminderRoomDatabase!!.reminderDao()
     }
 
-    suspend fun getAllReminders(): List<Reminder> {
+    fun getAllReminders(): LiveData<List<Reminder>> {
         return reminderDao.getAllReminders()
     }
 
